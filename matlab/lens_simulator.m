@@ -19,7 +19,6 @@ lens_b = (lens_m+1)*lens_EFL; % [mm]
 
 p_in = 0.01; % [mm]
 
-
 %% Calculate the intersection of line and circle
 
 % ay + bx + c == 0
@@ -84,7 +83,7 @@ end
 
 %% Calculate the angle of refraction
 function angle_of_refraction = calc_refraction_angle(angle_of_incidence, n1, n2)
-    % Snells raw: n1 * sin(theta1) = n2 * sin(theta2)
+    % Snell's raw: n1 * sin(theta1) = n2 * sin(theta2)
     % sin(theta2) = n1/n2 * sin(theta1)
     angle_of_refraction = asin(n1/n2 * sin(angle_of_incidence));
 end
