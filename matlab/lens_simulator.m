@@ -38,7 +38,6 @@ intersection1 = pos1;
 if pos1.x > pos2.x
     intersection1 = pos2;
 end
-intersection1
 
 %% 交点における屈折角を計算
 % the line perpendicular to the surface at the point of incidence, called the normal.
@@ -49,10 +48,10 @@ a2 = -p_in/lens_a;
 angle_of_incidence = calc_angle_of_2lines(a1, a2);
 angle_of_refraction = calc_refraction_angle(angle_of_incidence, air_IOR, lens_IOR);
 
-deg_a2 = atan(a2)*180/pi
-deg_normal = atan(a1)*180/pi
-deg_incidence = angle_of_incidence*180/pi
-deg_refraction = angle_of_refraction*180/pi
+deg_a2 = atan(a2)*180/pi;
+deg_normal = atan(a1)*180/pi;
+deg_incidence = angle_of_incidence*180/pi;
+deg_refraction = angle_of_refraction*180/pi;
 
 %% Calculate the intersection of line and circle2
 
@@ -74,7 +73,6 @@ intersection2 = pos1;
 if pos1.x < pos2.x
     intersection2 = pos2;
 end
-intersection2
 
 %% 交点における屈折角を計算
 % the line perpendicular to the surface at the point of incidence, called the normal.
@@ -92,8 +90,8 @@ a = -tan(atan(a1) + angle_of_refraction);
 b = 1;
 c = -a*intersection2.x - intersection2.y;
 m = tan(atan(a1) + angle_of_refraction);
-x = lens_b
-y = m*(x - intersection2.x) + intersection2.y
+x = lens_b;
+y = m*(x - intersection2.x) + intersection2.y;
 
 %% Calculate the intersection of line and circle
 function [position1, position2] = calc_intersection_of_line_and_circle(a, b, c, x_p, y_p, r)
