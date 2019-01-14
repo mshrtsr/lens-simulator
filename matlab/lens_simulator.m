@@ -19,7 +19,7 @@ lens_b = (lens_m+1)*lens_EFL; % [mm]
 
 p_in = 0.01; % [mm]
 
-%% Calculate the intersection of line and circle
+%% Calculate the intersection of line and circle1
 
 % ay + bx + c == 0
 a = lens_a;
@@ -41,8 +41,11 @@ end
 disp(intersection1)
 
 %% 交点における屈折角を計算
-a1 = (0 - intersection1.y)/(lens_r1 - lens_thickness/2 - intersection1.x);
-a2 = -p_in/lens_a;
+% the line perpendicular to the surface at the point of incidence, called the normal.
+a1 = -p_in/lens_a;
+% Incident ray
+a2 = (0 - intersection1.y)/(lens_r1 - lens_thickness/2 - intersection1.x);
+
 angle_of_incidence = calc_angle_of_2lines(a1, a2);
 angle_of_refraction = calc_refraction_angle(angle_of_incidence, air_IOR, lens_IOR);
 
@@ -65,6 +68,18 @@ end
 
 %% Calculate the angle of two lines
 function angle = calc_angle_of_2lines(a1, a2)
+
+% Reference: https://mathtrain.jp/nasukaku
+
+angle1 = atan(a1); % create a vector based on the line equation
+angle2 = atan(a2);
+
+% obtain the angle of intersection in degrees
+angle = angle2 - angle1;
+
+end
+
+function angle = calc_abs_angle_of_2lines(a1, a2)
 
 % Reference: https://jp.mathworks.com/help/images/examples/measuring-angle-of-intersection.html
 
