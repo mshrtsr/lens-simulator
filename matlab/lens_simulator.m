@@ -1,5 +1,7 @@
 clear all;
 
+air_IOR = 1.0;
+
 %% Lens setting
 lens_EFL = 0.217; % effective focal length [mm]
 lens_r1 = 0.1; % radius of curvature 1 [mm]
@@ -7,7 +9,7 @@ lens_r2 = Inf; % radius of curvature 2 [mm]
 lens_thickness = 0.05; % thickness [mm]
 lens_IOR = 1.43; % refractive index (index of refractive)
 
-Lens_radius = 0.1; % Radius of lens [mm]
+lens_radius = 0.1; % Radius of lens [mm]
 
 %% Lenslet array setting
 
@@ -42,7 +44,8 @@ disp(intersection1)
 %% 交点における屈折角を計算
 a1 = (0 - intersection1.y)/(lens_r1 - lens_thickness/2 - intersection1.x);
 a2 = -p_in/lens_a;
-angle = calc_angle_of_2lines(a1, a2);
+angle_of_incidence = calc_angle_of_2lines(a1, a2);
+angle_of_refraction = calc_refraction_angle(angle_of_incidence, air_IOR, lens_IOR);
 
 
 %% Calculate the intersection of line and circle
@@ -75,6 +78,13 @@ length1 = sqrt(sum(vect1.^2));
 length2 = sqrt(sum(vect2.^2));
 
 % obtain the smaller angle of intersection in degrees
-angle = acos(dp/(length1*length2))*180/pi;
+angle = acos(dp/(length1*length2));
 
+end
+
+%% Calculate the angle of refraction
+function angle_of_refraction = calc_refraction_angle(angle_of_incidence, n1, n2)
+    % Snells raw: n1 * sin(theta1) = n2 * sin(theta2)
+    % sin(theta2) = n1/n2 * sin(theta1)
+    angle_of_refraction = asin(n1/n2 * sin(angle_of_incidence));
 end
