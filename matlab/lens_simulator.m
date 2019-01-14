@@ -49,6 +49,28 @@ a2 = (0 - intersection1.y)/(lens_r1 - lens_thickness/2 - intersection1.x);
 angle_of_incidence = calc_angle_of_2lines(a1, a2);
 angle_of_refraction = calc_refraction_angle(angle_of_incidence, air_IOR, lens_IOR);
 
+%% Calculate the intersection of line and circle2
+
+% y - y_1 = m(x - x_1) => y -m*x +m*x_1 - y_1
+% ay + bx + c == 0
+a = 1;
+b = -tan(atan(a1) + angle_of_refraction);
+c = -b*intersection1.x - intersection1.y;
+
+% position = (x_p, y_p) and radius = r
+x_p =  - lens_r2 + lens_thickness/2;
+y_p = 0;
+r = lens_r2;
+
+% calculate the intersection
+[pos1, pos2] = calc_intersection_of_line_and_circle(a, b, c, x_p, y_p, r);
+
+intersection2 = pos1;
+if pos1.x > pos2.x
+    intersection2 = pos2;
+end
+disp(intersection2)
+
 
 %% Calculate the intersection of line and circle
 function [position1, position2] = calc_intersection_of_line_and_circle(a, b, c, x_p, y_p, r)
