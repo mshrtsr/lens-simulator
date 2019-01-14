@@ -5,7 +5,7 @@ air_IOR = 1.0;
 %% Lens setting
 lens_EFL = 0.217; % effective focal length [mm]
 lens_r1 = 0.1; % radius of curvature 1 [mm]
-lens_r2 = Inf; % radius of curvature 2 [mm]
+lens_r2 = 0.1;%Inf; % radius of curvature 2 [mm]
 lens_thickness = 0.05; % thickness [mm]
 lens_IOR = 1.43; % refractive index (index of refractive)
 
@@ -17,13 +17,13 @@ lens_m = 1;%0.5;%0.5;
 lens_a = (lens_m+1)/lens_m*lens_EFL; % [mm];
 lens_b = (lens_m+1)*lens_EFL; % [mm]
 
-p_in = 0.01; % [mm]
+p_in = 0.1; % [mm]
 
 %% Calculate the intersection of line and circle1
 
-% ay + bx + c == 0
-a = lens_a;
-b = p_in;
+% ax + by + c == 0
+a = p_in/lens_a;
+b = 1;
 c = 0;
 
 % position = (x_p, y_p) and radius = r
@@ -38,27 +38,32 @@ intersection1 = pos1;
 if pos1.x > pos2.x
     intersection1 = pos2;
 end
-disp(intersection1)
+intersection1
 
 %% 交点における屈折角を計算
 % the line perpendicular to the surface at the point of incidence, called the normal.
-a1 = -p_in/lens_a;
+a1 = (0 - intersection1.y)/(lens_r1 - lens_thickness/2 - intersection1.x);
 % Incident ray
-a2 = (0 - intersection1.y)/(lens_r1 - lens_thickness/2 - intersection1.x);
+a2 = -p_in/lens_a;
 
 angle_of_incidence = calc_angle_of_2lines(a1, a2);
 angle_of_refraction = calc_refraction_angle(angle_of_incidence, air_IOR, lens_IOR);
 
+deg_a2 = atan(a2)*180/pi
+deg_normal = atan(a1)*180/pi
+deg_incidence = angle_of_incidence*180/pi
+deg_refraction = angle_of_refraction*180/pi
+
 %% Calculate the intersection of line and circle2
 
-% y - y_1 = m(x - x_1) => y -m*x +m*x_1 - y_1
-% ay + bx + c == 0
-a = 1;
-b = -tan(atan(a1) + angle_of_refraction);
-c = -b*intersection1.x - intersection1.y;
+% y - y_1 = m(x - x_1) => -m*x + y + m*x_1 - y_1 == 0
+% ax + by + c == 0
+a = -tan(atan(a1) + angle_of_refraction);
+b = 1;
+c = -a*intersection1.x - intersection1.y;
 
 % position = (x_p, y_p) and radius = r
-x_p =  - lens_r2 + lens_thickness/2;
+x_p = - lens_r2 + lens_thickness/2;
 y_p = 0;
 r = lens_r2;
 
@@ -66,11 +71,29 @@ r = lens_r2;
 [pos1, pos2] = calc_intersection_of_line_and_circle(a, b, c, x_p, y_p, r);
 
 intersection2 = pos1;
-if pos1.x > pos2.x
+if pos1.x < pos2.x
     intersection2 = pos2;
 end
-disp(intersection2)
+intersection2
 
+%% 交点における屈折角を計算
+% the line perpendicular to the surface at the point of incidence, called the normal.
+a1 = (intersection2.y - y_p)/(intersection2.x - x_p);
+% Incident ray
+a2 = a/b;
+
+angle_of_incidence2 = calc_angle_of_2lines(a1, a2);
+angle_of_refraction2 = calc_refraction_angle(angle_of_incidence, air_IOR, lens_IOR);
+
+%% Calc y value @ x= lens_b
+% y - y_1 = m(x - x_1) => y -m*x +m*x_1 - y_1
+% ay + bx + c == 0
+a = -tan(atan(a1) + angle_of_refraction);
+b = 1;
+c = -a*intersection2.x - intersection2.y;
+m = tan(atan(a1) + angle_of_refraction);
+x = lens_b
+y = m*(x - intersection2.x) + intersection2.y
 
 %% Calculate the intersection of line and circle
 function [position1, position2] = calc_intersection_of_line_and_circle(a, b, c, x_p, y_p, r)
