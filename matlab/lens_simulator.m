@@ -1,7 +1,5 @@
 clear all;
 
-air_IOR = 1.0;
-
 %% Lens setting
 lens.r1 = 0.1; % radius of curvature 1 [mm]
 lens.r2 = 0.1;%Inf; % radius of curvature 2 [mm]
@@ -26,72 +24,13 @@ ray_from_object.pos.x = -lens.a;
 ray_from_object.pos.y = p_in;
 ray_from_object.direction = -p_in/lens.a;
 
-%% Calculate the intersection of line and circle1
+%% Calculate the ray condition in lens
 
-% ax + by + c == 0
-a = -ray_from_object.direction;
-b = 1;
-c = -a*ray_from_object.pos.x - ray_from_object.pos.y;
-
-% position = (x_p, y_p) and radius = r
-x_p = lens.r1 - lens.thickness/2;
-y_p = 0;
-r = lens.r1;
-
-% calculate the intersection
-[pos1, pos2] = calc_intersection_of_line_and_circle(a, b, c, x_p, y_p, r);
-
-intersection1 = pos1;
-if pos1.x > pos2.x
-    intersection1 = pos2;
-end
-
-%% 交点における屈折角を計算
-% the line perpendicular to the surface at the point of incidence, called the normal.
-a1 = (0 - intersection1.y)/(lens.r1 - lens.thickness/2 - intersection1.x);
-% Incident ray
-a2 = ray_from_object.direction;
-
-angle_of_incidence = calc_angle_of_2lines(a1, a2);
-angle_of_refraction = calc_refraction_angle(angle_of_incidence, air_IOR, lens.IOR);
+ray_in_lens = calc_refraction_ray(ray_from_object, lens, 2, lens.IOR/1);
 
 %% Calculate the ray condition in lens
-ray_in_lens.pos = intersection1;
-ray_in_lens.direction = tan(atan(a1) + angle_of_refraction);
 
-%% Calculate the intersection of line and circle2
-
-% y - y_1 = m(x - x_1) => -m*x + y + m*x_1 - y_1 == 0
-% ax + by + c == 0
-a = -ray_in_lens.direction;
-b = 1;
-c = -a*ray_in_lens.pos.x - ray_in_lens.pos.y;
-
-% position = (x_p, y_p) and radius = r
-x_p = - lens.r2 + lens.thickness/2;
-y_p = 0;
-r = lens.r2;
-
-% calculate the intersection
-[pos1, pos2] = calc_intersection_of_line_and_circle(a, b, c, x_p, y_p, r);
-
-intersection2 = pos1;
-if pos1.x < pos2.x
-    intersection2 = pos2;
-end
-
-%% 交点における屈折角を計算
-% the line perpendicular to the surface at the point of incidence, called the normal.
-a1 = (intersection2.y - y_p)/(intersection2.x - x_p);
-% Incident ray
-a2 = ray_in_lens.direction;
-
-angle_of_incidence2 = calc_angle_of_2lines(a1, a2);
-angle_of_refraction2 = calc_refraction_angle(angle_of_incidence2, lens.IOR, air_IOR);
-
-%% Calculate the ray condition in lens
-ray_from_lens.pos = intersection2;
-ray_from_lens.direction = tan(atan(a1) + angle_of_refraction2);
+ray_from_lens = calc_refraction_ray(ray_in_lens, lens, 1, 1/lens.IOR);
 
 %% Calc y value @ x= lens_b
 % y - y_1 = m(x - x_1) => y -m*x +m*x_1 - y_1
@@ -158,6 +97,8 @@ end
 
 %% Calculate refracted ray condition
 function refracted_ray = calc_refraction_ray(incident_ray, lens, orthant, sign_of_relative_IOR)
+    air_IOR = 1.0;
+
     %% Calculate the intersection of line and circle2
 
     % y - y_1 = m(x - x_1) => -m*x + y + m*x_1 - y_1 == 0
@@ -167,9 +108,16 @@ function refracted_ray = calc_refraction_ray(incident_ray, lens, orthant, sign_o
     c = -a*incident_ray.pos.x - incident_ray.pos.y;
 
     % position = (x_p, y_p) and radius = r
-    x_p = - lens.r2 + lens.thickness/2;
-    y_p = 0;
-    r = lens.r2;
+    surface.r = lens.r1;
+    surface.pos.x = surface.r - lens.thickness/2;
+    surface.pos.y = 0;
+    if orthant == 1
+        surface.r = lens.r2;
+        surface.pos.x = - surface.r + lens.thickness/2;
+    end
+    x_p = surface.pos.x;
+    y_p = surface.pos.y;
+    r = surface.r;
 
     % calculate the intersection
     [pos1, pos2] = calc_intersection_of_line_and_circle(a, b, c, x_p, y_p, r);
@@ -192,8 +140,12 @@ function refracted_ray = calc_refraction_ray(incident_ray, lens, orthant, sign_o
     a2 = incident_ray.direction;
 
     angle_of_incidence = calc_angle_of_2lines(a1, a2);
-    angle_of_refraction = calc_refraction_angle(angle_of_incidence, lens.IOR, air_IOR);
-
+    if sign_of_relative_IOR > 1 % from air to lens
+        angle_of_refraction = calc_refraction_angle(angle_of_incidence, air_IOR, lens.IOR);
+    else % from lens to air
+        angle_of_refraction = calc_refraction_angle(angle_of_incidence, lens.IOR, air_IOR);
+    end
+    
     %% Calculate the ray condition in lens
     refracted_ray.pos = intersection;
     refracted_ray.direction = tan(atan(a1) + angle_of_refraction);
