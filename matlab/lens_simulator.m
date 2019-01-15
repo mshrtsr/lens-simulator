@@ -3,13 +3,12 @@ clear all;
 air_IOR = 1.0;
 
 %% Lens setting
-lens.EFL = 0.217; % effective focal length [mm]
 lens.r1 = 0.1; % radius of curvature 1 [mm]
 lens.r2 = 0.1;%Inf; % radius of curvature 2 [mm]
 lens.thickness = 0.05; % thickness [mm]
-lens.IOR = 1.43; % refractive index (index of refractive)
-
 lens.radius = 0.1; % Radius of lens [mm]
+lens.IOR = 1.43; % refractive index (index of refractive)
+lens.EFL = 0.217; % effective focal length [mm]
 
 %% Lenslet array setting
 
@@ -18,6 +17,9 @@ lens.a = (lens.m+1)/lens.m*lens.EFL; % [mm];
 lens.b = (lens.m+1)*lens.EFL; % [mm]
 
 p_in = 1; % [mm]
+
+screen.pos.x = lens.b;
+screen.pos.y = 0;
 
 %% Define the ray condition
 ray_from_object.pos.x = -lens.a;
@@ -98,7 +100,7 @@ a = -ray_from_lens.direction;
 b = 1;
 c = -a*ray_from_lens.pos.x - ray_from_lens.pos.y;
 m = ray_from_lens.direction;
-x = lens.b;
+x = screen.pos.x;
 y = m*(x - ray_from_lens.pos.x) + ray_from_lens.pos.y;
 
 %% Calculate the intersection of line and circle
@@ -152,4 +154,48 @@ function angle_of_refraction = calc_refraction_angle(angle_of_incidence, n1, n2)
     % Snell's raw: n1 * sin(theta1) = n2 * sin(theta2)
     % sin(theta2) = n1/n2 * sin(theta1)
     angle_of_refraction = asin(n1/n2 * sin(angle_of_incidence));
+end
+
+%% Calculate refracted ray condition
+function refracted_ray = calc_refraction_ray(incident_ray, lens, orthant, sign_of_relative_IOR)
+    %% Calculate the intersection of line and circle2
+
+    % y - y_1 = m(x - x_1) => -m*x + y + m*x_1 - y_1 == 0
+    % ax + by + c == 0
+    a = -incident_ray.direction;
+    b = 1;
+    c = -a*incident_ray.pos.x - incident_ray.pos.y;
+
+    % position = (x_p, y_p) and radius = r
+    x_p = - lens.r2 + lens.thickness/2;
+    y_p = 0;
+    r = lens.r2;
+
+    % calculate the intersection
+    [pos1, pos2] = calc_intersection_of_line_and_circle(a, b, c, x_p, y_p, r);
+
+    intersection = pos1;
+    if pos1.x < pos2.x
+        if orthant == 1
+            intersection = pos2;
+        end
+    else
+        if orthant == 2
+            intersection = pos2;
+        end
+    end
+
+    %% 交点における屈折角を計算
+    % the line perpendicular to the surface at the point of incidence, called the normal.
+    a1 = (intersection.y - y_p)/(intersection.x - x_p);
+    % Incident ray
+    a2 = incident_ray.direction;
+
+    angle_of_incidence = calc_angle_of_2lines(a1, a2);
+    angle_of_refraction = calc_refraction_angle(angle_of_incidence, lens.IOR, air_IOR);
+
+    %% Calculate the ray condition in lens
+    refracted_ray.pos = intersection;
+    refracted_ray.direction = tan(atan(a1) + angle_of_refraction);
+
 end
