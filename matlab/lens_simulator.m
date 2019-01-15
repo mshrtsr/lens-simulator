@@ -93,23 +93,6 @@ angle = angle2 - angle1;
 
 end
 
-function angle = calc_abs_angle_of_2lines(a1, a2)
-
-% Reference: https://jp.mathworks.com/help/images/examples/measuring-angle-of-intersection.html
-
-vect1 = [1 a1]; % create a vector based on the line equation
-vect2 = [1 a2];
-dp = dot(vect1, vect2);
-
-% compute vector lengths
-length1 = sqrt(sum(vect1.^2));
-length2 = sqrt(sum(vect2.^2));
-
-% obtain the smaller angle of intersection in degrees
-angle = acos(dp/(length1*length2));
-
-end
-
 %% Calculate the angle of refraction
 function angle_of_refraction = calc_refraction_angle(angle_of_incidence, n1, n2)
     % Snell's raw: n1 * sin(theta1) = n2 * sin(theta2)
