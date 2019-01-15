@@ -10,11 +10,11 @@ lens.EFL = 0.217; % effective focal length [mm]
 
 %% Lenslet array setting
 
-lens.m = 1;%0.5;%0.5;
+lens.m = 0.5;%0.5;%0.5;
 lens.a = (lens.m+1)/lens.m*lens.EFL; % [mm];
 lens.b = (lens.m+1)*lens.EFL; % [mm]
 
-p_in = 1; % [mm]
+p_in = 0.0; % [mm]
 
 screen.pos.x = lens.b;
 screen.pos.y = 0;
@@ -22,7 +22,7 @@ screen.pos.y = 0;
 %% Define the ray condition
 ray_from_object.pos.x = -lens.a;
 ray_from_object.pos.y = p_in;
-ray_from_object.direction = -p_in/lens.a;
+ray_from_object.direction = 0.01/lens.a;%-p_in/lens.a;
 
 %% Calculate the ray condition in lens
 
@@ -39,8 +39,30 @@ a = -ray_from_lens.direction;
 b = 1;
 c = -a*ray_from_lens.pos.x - ray_from_lens.pos.y;
 m = ray_from_lens.direction;
-x = screen.pos.x;
-y = m*(x - ray_from_lens.pos.x) + ray_from_lens.pos.y;
+final_x = screen.pos.x;
+final_y = m*(final_x - ray_from_lens.pos.x) + ray_from_lens.pos.y;
+
+%% plot the graph
+x = [];
+y = [];
+
+tmp_x = linspace(ray_from_object.pos.x, ray_in_lens.pos.x);
+tmp_y = ray_from_object.direction*(tmp_x - ray_from_object.pos.x) + ray_from_object.pos.y;
+x = [x tmp_x];
+y = [y tmp_y];
+
+tmp_x = linspace(ray_in_lens.pos.x, ray_from_lens.pos.x);
+tmp_y = ray_in_lens.direction*(tmp_x - ray_in_lens.pos.x) + ray_in_lens.pos.y;
+x = [x tmp_x];
+y = [y tmp_y];
+
+tmp_x = linspace(ray_from_lens.pos.x, final_x);
+tmp_y = ray_from_lens.direction*(tmp_x - ray_from_lens.pos.x) + ray_from_lens.pos.y;
+x = [x tmp_x];
+y = [y tmp_y];
+
+plot(x, y);
+hold on
 
 %% Calculate the intersection of line and circle
 function [position1, position2] = calc_intersection_of_line_and_circle(a, b, c, x_p, y_p, r)
