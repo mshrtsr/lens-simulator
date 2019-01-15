@@ -3,33 +3,38 @@ clear all;
 air_IOR = 1.0;
 
 %% Lens setting
-lens_EFL = 0.217; % effective focal length [mm]
-lens_r1 = 0.1; % radius of curvature 1 [mm]
-lens_r2 = 0.1;%Inf; % radius of curvature 2 [mm]
-lens_thickness = 0.05; % thickness [mm]
-lens_IOR = 1.43; % refractive index (index of refractive)
+lens.EFL = 0.217; % effective focal length [mm]
+lens.r1 = 0.1; % radius of curvature 1 [mm]
+lens.r2 = 0.1;%Inf; % radius of curvature 2 [mm]
+lens.thickness = 0.05; % thickness [mm]
+lens.IOR = 1.43; % refractive index (index of refractive)
 
-lens_radius = 0.1; % Radius of lens [mm]
+lens.radius = 0.1; % Radius of lens [mm]
 
 %% Lenslet array setting
 
-lens_m = 1;%0.5;%0.5;
-lens_a = (lens_m+1)/lens_m*lens_EFL; % [mm];
-lens_b = (lens_m+1)*lens_EFL; % [mm]
+lens.m = 1;%0.5;%0.5;
+lens.a = (lens.m+1)/lens.m*lens.EFL; % [mm];
+lens.b = (lens.m+1)*lens.EFL; % [mm]
 
-p_in = 0.1; % [mm]
+p_in = 1; % [mm]
+
+%% Define the ray condition
+ray_from_object.pos.x = -lens.a;
+ray_from_object.pos.y = p_in;
+ray_from_object.direction = -p_in/lens.a;
 
 %% Calculate the intersection of line and circle1
 
 % ax + by + c == 0
-a = p_in/lens_a;
+a = -ray_from_object.direction;
 b = 1;
-c = 0;
+c = -a*ray_from_object.pos.x - ray_from_object.pos.y;
 
 % position = (x_p, y_p) and radius = r
-x_p = lens_r1 - lens_thickness/2;
+x_p = lens.r1 - lens.thickness/2;
 y_p = 0;
-r = lens_r1;
+r = lens.r1;
 
 % calculate the intersection
 [pos1, pos2] = calc_intersection_of_line_and_circle(a, b, c, x_p, y_p, r);
@@ -41,30 +46,29 @@ end
 
 %% 交点における屈折角を計算
 % the line perpendicular to the surface at the point of incidence, called the normal.
-a1 = (0 - intersection1.y)/(lens_r1 - lens_thickness/2 - intersection1.x);
+a1 = (0 - intersection1.y)/(lens.r1 - lens.thickness/2 - intersection1.x);
 % Incident ray
-a2 = -p_in/lens_a;
+a2 = ray_from_object.direction;
 
 angle_of_incidence = calc_angle_of_2lines(a1, a2);
-angle_of_refraction = calc_refraction_angle(angle_of_incidence, air_IOR, lens_IOR);
+angle_of_refraction = calc_refraction_angle(angle_of_incidence, air_IOR, lens.IOR);
 
-deg_a2 = atan(a2)*180/pi;
-deg_normal = atan(a1)*180/pi;
-deg_incidence = angle_of_incidence*180/pi;
-deg_refraction = angle_of_refraction*180/pi;
+%% Calculate the ray condition in lens
+ray_in_lens.pos = intersection1;
+ray_in_lens.direction = tan(atan(a1) + angle_of_refraction);
 
 %% Calculate the intersection of line and circle2
 
 % y - y_1 = m(x - x_1) => -m*x + y + m*x_1 - y_1 == 0
 % ax + by + c == 0
-a = -tan(atan(a1) + angle_of_refraction);
+a = -ray_in_lens.direction;
 b = 1;
-c = -a*intersection1.x - intersection1.y;
+c = -a*ray_in_lens.pos.x - ray_in_lens.pos.y;
 
 % position = (x_p, y_p) and radius = r
-x_p = - lens_r2 + lens_thickness/2;
+x_p = - lens.r2 + lens.thickness/2;
 y_p = 0;
-r = lens_r2;
+r = lens.r2;
 
 % calculate the intersection
 [pos1, pos2] = calc_intersection_of_line_and_circle(a, b, c, x_p, y_p, r);
@@ -78,20 +82,24 @@ end
 % the line perpendicular to the surface at the point of incidence, called the normal.
 a1 = (intersection2.y - y_p)/(intersection2.x - x_p);
 % Incident ray
-a2 = a/b;
+a2 = ray_in_lens.direction;
 
 angle_of_incidence2 = calc_angle_of_2lines(a1, a2);
-angle_of_refraction2 = calc_refraction_angle(angle_of_incidence, air_IOR, lens_IOR);
+angle_of_refraction2 = calc_refraction_angle(angle_of_incidence2, lens.IOR, air_IOR);
+
+%% Calculate the ray condition in lens
+ray_from_lens.pos = intersection2;
+ray_from_lens.direction = tan(atan(a1) + angle_of_refraction2);
 
 %% Calc y value @ x= lens_b
 % y - y_1 = m(x - x_1) => y -m*x +m*x_1 - y_1
 % ay + bx + c == 0
-a = -tan(atan(a1) + angle_of_refraction);
+a = -ray_from_lens.direction;
 b = 1;
-c = -a*intersection2.x - intersection2.y;
-m = tan(atan(a1) + angle_of_refraction);
-x = lens_b;
-y = m*(x - intersection2.x) + intersection2.y;
+c = -a*ray_from_lens.pos.x - ray_from_lens.pos.y;
+m = ray_from_lens.direction;
+x = lens.b;
+y = m*(x - ray_from_lens.pos.x) + ray_from_lens.pos.y;
 
 %% Calculate the intersection of line and circle
 function [position1, position2] = calc_intersection_of_line_and_circle(a, b, c, x_p, y_p, r)
