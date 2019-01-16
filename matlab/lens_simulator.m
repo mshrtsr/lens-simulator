@@ -1,28 +1,10 @@
 clear all;
 
-%% Lens setting
-lens.r1 = 0.1; % radius of curvature 1 [mm]
-lens.r2 = 0.1;%Inf; % radius of curvature 2 [mm]
-lens.thickness = 0.05; % thickness [mm]
-lens.radius = 0.1; % Radius of lens [mm]
-lens.IOR = 1.43; % refractive index (index of refractive)
-lens.EFL = 0.217; % effective focal length [mm]
-
-%% Lenslet array setting
-
-lens.m = 0.5;%0.5;%0.5;
-lens.a = (lens.m+1)/lens.m*lens.EFL; % [mm];
-lens.b = (lens.m+1)*lens.EFL; % [mm]
-
-p_in = 0.0; % [mm]
-
-screen.pos.x = lens.b;
-screen.pos.y = 0;
-
-%% Define the ray condition
-ray_from_object.pos.x = -lens.a;
-ray_from_object.pos.y = p_in;
-ray_from_object.direction = 0.01/lens.a;%-p_in/lens.a;
+%% Setup
+params = fetch_variables();
+lens = params.lens;
+screen = params.screen;
+ray_from_object = params.ray_from_object;
 
 %% Calculate the ray condition in lens
 
@@ -34,13 +16,9 @@ ray_from_lens = calc_refraction_ray(ray_in_lens, lens, 1, 1/lens.IOR);
 
 %% Calc y value @ x= lens_b
 % y - y_1 = m(x - x_1) => y -m*x +m*x_1 - y_1
-% ay + bx + c == 0
-a = -ray_from_lens.direction;
-b = 1;
-c = -a*ray_from_lens.pos.x - ray_from_lens.pos.y;
 m = ray_from_lens.direction;
-final_x = screen.pos.x;
-final_y = m*(final_x - ray_from_lens.pos.x) + ray_from_lens.pos.y;
+projected_p.pos.x = screen.pos.x;
+projected_p.pos.y = m*(projected_p.pos.x - ray_from_lens.pos.x) + ray_from_lens.pos.y;
 
 %% plot the graph
 x = [];
@@ -56,7 +34,7 @@ tmp_y = ray_in_lens.direction*(tmp_x - ray_in_lens.pos.x) + ray_in_lens.pos.y;
 x = [x tmp_x];
 y = [y tmp_y];
 
-tmp_x = linspace(ray_from_lens.pos.x, final_x);
+tmp_x = linspace(ray_from_lens.pos.x, projected_p.pos.x);
 tmp_y = ray_from_lens.direction*(tmp_x - ray_from_lens.pos.x) + ray_from_lens.pos.y;
 x = [x tmp_x];
 y = [y tmp_y];
@@ -64,11 +42,53 @@ y = [y tmp_y];
 plot(x, y);
 hold on
 
+%% plot the lens
+r = lens.r1;
+xc = lens.r1 - lens.thickness/2;
+yc = 0;
+
+if r == Inf
+    y = linspace(-lens.radius, lens.radius);
+    x = y*0 -lens.thickness/2;
+else
+    theta = linspace(pi/2,3*pi/2);
+    x = r*cos(theta) + xc;
+    y = r*sin(theta) + yc;
+    new_x = x(y>=-lens.radius & y<=lens.radius);
+    new_y = y(y>=-lens.radius & y<=lens.radius);
+    x = new_x;
+    y = new_y;
+end
+plot(x,y)
+
+r = lens.r2;
+xc = - lens.r2 + lens.thickness/2;
+yc = 0;
+
+if r == Inf
+    y = linspace(-lens.radius, lens.radius);
+    x = y*0 + lens.thickness/2;
+else
+    theta = linspace(-pi/2,pi/2);
+    x = r*cos(theta) + xc;
+    y = r*sin(theta) + yc;
+    new_x = x(y>=-lens.radius & y<=lens.radius);
+    new_y = y(y>=-lens.radius & y<=lens.radius);
+    x = new_x;
+    y = new_y;
+end
+plot(x,y)
+
+%% plot y axis
+% y = linspace(-lens.radius, lens.radius);
+% x = y*0;
+% plot(x,y);
+
 %% Calculate the intersection of line and circle
 function [position1, position2] = calc_intersection_of_line_and_circle(a, b, c, x_p, y_p, r)
 
 % Reference: http://shogo82148.github.io/homepage/memo/geometry/line-circle.html
-% ay + bx + c == 0
+% ax + by + c == 0
 % Circle: position = (x_p, y_p) and radius = r
 
 % calculate the intersection
@@ -77,6 +97,20 @@ position1.x = (-a*d + b*sqrt((a^2+b^2)*r^2 - d^2))/(a^2+b^2) + x_p;
 position2.x = (-a*d - b*sqrt((a^2+b^2)*r^2 - d^2))/(a^2+b^2) + x_p;
 position1.y = (-b*d - a*sqrt((a^2+b^2)*r^2 - d^2))/(a^2+b^2) + y_p;
 position2.y = (-b*d + a*sqrt((a^2+b^2)*r^2 - d^2))/(a^2+b^2) + y_p;
+
+end
+
+%% Calculate the intersection of 2lines
+function position = calc_intersection_of_2lines(a1, b1, c1, a2, b2, c2)
+
+% Reference: https://mathwords.net/nityokusenkoten
+% a1*x + b1*y + c1 == 0
+% a2*x + b2*y + c2 == 0
+
+% calculate the intersection
+
+position.x = (b1*c2 - b2*c1)/(a1*b2 - a2*b1);
+position.y = (a2*c1 - a1*c2)/(a1*b2 - a2*b1);
 
 end
 
@@ -124,20 +158,29 @@ function refracted_ray = calc_refraction_ray(incident_ray, lens, orthant, sign_o
     y_p = surface.pos.y;
     r = surface.r;
 
-    % calculate the intersection
-    [pos1, pos2] = calc_intersection_of_line_and_circle(a, b, c, x_p, y_p, r);
-
-    intersection = pos1;
-    if pos1.x < pos2.x
+    if r == Inf
+        a2 = 1;
+        b2 = 0;
+        c2 = lens.thickness/2;
         if orthant == 1
-            intersection = pos2;
+            c2 = -lens.thickness/2;
         end
+        intersection = calc_intersection_of_2lines(a, b, c, a2, b2, c2);
     else
-        if orthant == 2
-            intersection = pos2;
+        % calculate the intersection
+        [pos1, pos2] = calc_intersection_of_line_and_circle(a, b, c, x_p, y_p, r);
+
+        intersection = pos1;
+        if pos1.x < pos2.x
+            if orthant == 1
+                intersection = pos2;
+            end
+        else
+            if orthant == 2
+                intersection = pos2;
+            end
         end
     end
-
     %% 交点における屈折角を計算
     % the line perpendicular to the surface at the point of incidence, called the normal.
     a1 = (intersection.y - y_p)/(intersection.x - x_p);
