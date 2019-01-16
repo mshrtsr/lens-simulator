@@ -1,86 +1,33 @@
-clear all;
+function params = lens_simulator(params)
 
-%% Setup
-params = fetch_variables();
-lens = params.lens;
-screen = params.screen;
-ray_from_object = params.ray_from_object;
+    %% Setup
+    lens = params.lens;
+    screen = params.screen;
+    render_area_right_border = params.render_area_right_border;
+    ray_from_object = params.ray_from_object;
 
-%% Calculate the ray condition in lens
-ray_in_lens = calc_refraction_ray(ray_from_object, lens, 2, lens.IOR/1);
+    %% Calculate the ray condition in lens
+    ray_in_lens = calc_refraction_ray(ray_from_object, lens, 2, lens.IOR/1);
 
-%% Calculate the ray condition in lens
-ray_from_lens = calc_refraction_ray(ray_in_lens, lens, 1, 1/lens.IOR);
+    %% Calculate the ray condition in lens
+    ray_from_lens = calc_refraction_ray(ray_in_lens, lens, 1, 1/lens.IOR);
 
-%% Calc y value @ x= lens_b
-% y - y_1 = m(x - x_1) => y -m*x +m*x_1 - y_1
-m = ray_from_lens.direction;
-projected_p.pos.x = screen.pos.x;
-projected_p.pos.y = m*(projected_p.pos.x - ray_from_lens.pos.x) + ray_from_lens.pos.y;
-
-%% plot the graph
-x = [];
-y = [];
-
-tmp_x = linspace(ray_from_object.pos.x, ray_in_lens.pos.x);
-tmp_y = ray_from_object.direction*(tmp_x - ray_from_object.pos.x) + ray_from_object.pos.y;
-x = [x tmp_x];
-y = [y tmp_y];
-
-tmp_x = linspace(ray_in_lens.pos.x, ray_from_lens.pos.x);
-tmp_y = ray_in_lens.direction*(tmp_x - ray_in_lens.pos.x) + ray_in_lens.pos.y;
-x = [x tmp_x];
-y = [y tmp_y];
-
-tmp_x = linspace(ray_from_lens.pos.x, projected_p.pos.x);
-tmp_y = ray_from_lens.direction*(tmp_x - ray_from_lens.pos.x) + ray_from_lens.pos.y;
-x = [x tmp_x];
-y = [y tmp_y];
-
-plot(x, y);
-hold on
-
-%% plot the lens
-r = lens.r1;
-xc = lens.r1 - lens.thickness/2;
-yc = 0;
-
-if r == Inf
-    y = linspace(-lens.radius, lens.radius);
-    x = y*0 -lens.thickness/2;
-else
-    theta = linspace(pi/2,3*pi/2);
-    x = r*cos(theta) + xc;
-    y = r*sin(theta) + yc;
-    new_x = x(y>=-lens.radius & y<=lens.radius);
-    new_y = y(y>=-lens.radius & y<=lens.radius);
-    x = new_x;
-    y = new_y;
+    %% Calc y value @ x= lens_b
+    % y - y_1 = m(x - x_1) => y -m*x +m*x_1 - y_1
+    m = ray_from_lens.direction;
+    projected_p.pos.x = screen.pos.x;
+    projected_p.pos.y = m*(projected_p.pos.x - ray_from_lens.pos.x) + ray_from_lens.pos.y;
+    p_at_right_border.pos.x = render_area_right_border;
+    p_at_right_border.pos.y = m*(p_at_right_border.pos.x - ray_from_lens.pos.x) + ray_from_lens.pos.y;
+    
+    
+    %% Copy the reslut to struct params
+    params.ray_in_lens = ray_in_lens;
+    params.ray_from_lens = ray_from_lens;
+    params.projected_p = projected_p;
+    params.p_at_right_border = p_at_right_border;
+    
 end
-plot(x,y, 'Color', [0,0,0])
-
-r = lens.r2;
-xc = - lens.r2 + lens.thickness/2;
-yc = 0;
-
-if r == Inf
-    y = linspace(-lens.radius, lens.radius);
-    x = y*0 + lens.thickness/2;
-else
-    theta = linspace(-pi/2,pi/2);
-    x = r*cos(theta) + xc;
-    y = r*sin(theta) + yc;
-    new_x = x(y>=-lens.radius & y<=lens.radius);
-    new_y = y(y>=-lens.radius & y<=lens.radius);
-    x = new_x;
-    y = new_y;
-end
-plot(x,y, 'Color', [0,0,0])
-
-%% plot y axis
-% y = linspace(-lens.radius, lens.radius);
-% x = y*0;
-% plot(x,y, 'Color', [0,0,0]);
 
 %% Calculate the intersection of line and circle
 function [position1, position2] = calc_intersection_of_line_and_circle(a, b, c, x_p, y_p, r)
