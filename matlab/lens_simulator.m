@@ -7,11 +7,9 @@ screen = params.screen;
 ray_from_object = params.ray_from_object;
 
 %% Calculate the ray condition in lens
-
 ray_in_lens = calc_refraction_ray(ray_from_object, lens, 2, lens.IOR/1);
 
 %% Calculate the ray condition in lens
-
 ray_from_lens = calc_refraction_ray(ray_in_lens, lens, 1, 1/lens.IOR);
 
 %% Calc y value @ x= lens_b
@@ -59,7 +57,7 @@ else
     x = new_x;
     y = new_y;
 end
-plot(x,y)
+plot(x,y, 'Color', [0,0,0])
 
 r = lens.r2;
 xc = - lens.r2 + lens.thickness/2;
@@ -77,12 +75,12 @@ else
     x = new_x;
     y = new_y;
 end
-plot(x,y)
+plot(x,y, 'Color', [0,0,0])
 
 %% plot y axis
 % y = linspace(-lens.radius, lens.radius);
 % x = y*0;
-% plot(x,y);
+% plot(x,y, 'Color', [0,0,0]);
 
 %% Calculate the intersection of line and circle
 function [position1, position2] = calc_intersection_of_line_and_circle(a, b, c, x_p, y_p, r)
