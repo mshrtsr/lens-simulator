@@ -1,14 +1,16 @@
 close all;
 clear all;
 
-%% Calculate the diffusing ray propagation
-
+%% Setup
 [params, store] = fetch_variables();
-diffusing_rays = simulate_diffusing_ray_propagation_through_the_lens(params, store, 100);
-
 lens = params.lens;
 screen = params.screen;
-render_area_right_border = params.render_area_right_border;
+
+% Render limit setting
+render_area_right_border = screen.pos.x * 1.1;
+
+%% Calculate the diffusing ray propagation
+diffusing_rays = simulate_diffusing_ray_propagation_through_the_lens(params, store, 100);
 
 %% Draw the ray propagations
 for diffusing_ray = diffusing_rays

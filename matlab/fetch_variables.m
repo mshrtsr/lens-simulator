@@ -32,9 +32,6 @@ lens.b = (lens.m+1)*lens.EFL; % Distance from screen to lens [mm];
 screen.pos.x = lens.b;
 screen.pos.y = 0;
 
-% Render limit setting
-render_area_right_border = screen.pos.x * 1.1;
-
 % Define the ray condition
 ray_entering_lens.pos.x = -lens.a;
 ray_entering_lens.pos.y = 0.1;
@@ -44,7 +41,6 @@ ray_entering_lens.direction = ray_entering_lens.pos.y/ray_entering_lens.pos.x;
 params.air = air;
 params.lens = lens;
 params.screen = screen;
-params.render_area_right_border = render_area_right_border;
 
 store.ray_entering_lens = ray_entering_lens;
 
