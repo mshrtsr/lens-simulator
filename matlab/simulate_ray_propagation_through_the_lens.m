@@ -1,7 +1,4 @@
 function new_store = simulate_ray_propagation_through_the_lens(params, store)
-
-    %% Include geometric lib
-    addpath geometric;
     
     %% Copy the params and store data.
     air = params.air;

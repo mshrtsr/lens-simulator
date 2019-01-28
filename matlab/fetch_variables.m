@@ -1,4 +1,7 @@
 function [params, store] =  fetch_variables()
+%% Include geometric lib
+addpath geometric;
+
 %% Parameter of experiment import
 %fdir = '../dataset/your_dataset_dir/';
 
