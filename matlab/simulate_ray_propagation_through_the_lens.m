@@ -90,6 +90,9 @@ function refracted_ray = calc_refraction_ray(incident_ray, lens, air, surface_si
     if ~isreal(intersection.x)
         refracted_ray = [];
         return;
+    elseif abs(intersection.y) > abs(lens.radius)
+        refracted_ray = [];
+        return;
     end
     
     %% 交点における屈折角を計算
