@@ -33,15 +33,15 @@ screen.pos.y = 0;
 render_area_right_border = screen.pos.x * 1.1;
 
 % Define the ray condition
-ray_into_lens.pos.x = -lens.a;
-ray_into_lens.pos.y = 0.1;
-ray_into_lens.direction = ray_into_lens.pos.y/ray_into_lens.pos.x;
+ray_entering_lens.pos.x = -lens.a;
+ray_entering_lens.pos.y = 0.1;
+ray_entering_lens.direction = ray_entering_lens.pos.y/ray_entering_lens.pos.x;
 
 % Copy all paramaters to struct params
 params.air = air;
 params.lens = lens;
 params.screen = screen;
 params.render_area_right_border = render_area_right_border;
-store.ray_into_lens = ray_into_lens;
+store.ray_entering_lens = ray_entering_lens;
 
 end

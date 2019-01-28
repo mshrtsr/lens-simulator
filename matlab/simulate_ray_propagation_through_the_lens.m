@@ -6,26 +6,26 @@ function new_store = simulate_ray_propagation_through_the_lens(params, store)
     %% Copy the params and store data.
     air = params.air;
     lens = params.lens;
-    ray_into_lens = store.ray_into_lens;
+    ray_entering_lens = store.ray_entering_lens;
 
     %% Calculate the ray condition in lens
-    if isempty(ray_into_lens)
-        ray_in_lens = [];
+    if isempty(ray_entering_lens)
+        ray_inside_lens = [];
     else
-        ray_in_lens = calc_refraction_ray(ray_into_lens, lens, air, 'front');
+        ray_inside_lens = calc_refraction_ray(ray_entering_lens, lens, air, 'front');
     end
 
     %% Calculate the ray condition in lens
-    if isempty(ray_in_lens)
-        ray_from_lens = [];
+    if isempty(ray_inside_lens)
+        ray_leaving_lens = [];
     else
-        ray_from_lens = calc_refraction_ray(ray_in_lens, lens, air, 'back');
+        ray_leaving_lens = calc_refraction_ray(ray_inside_lens, lens, air, 'back');
     end
 
     %% Copy the reslut to struct params
-    new_store.ray_into_lens = ray_into_lens;
-    new_store.ray_in_lens = ray_in_lens;
-    new_store.ray_from_lens = ray_from_lens;
+    new_store.ray_entering_lens = ray_entering_lens;
+    new_store.ray_inside_lens = ray_inside_lens;
+    new_store.ray_leaving_lens = ray_leaving_lens;
     
 end
 
