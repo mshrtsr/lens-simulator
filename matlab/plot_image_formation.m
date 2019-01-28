@@ -1,52 +1,55 @@
+close all;
 clear all;
 
-%% Setup
-params = fetch_variables();
+%% Calculate the diffusing ray propagation
+
+[params, store] = fetch_variables();
+diffusing_rays = simulate_diffusing_ray_propagation_through_the_lens(params, store, 100);
+
 lens = params.lens;
-ray_from_object = params.ray_from_object;
-direction_start = (lens.radius - ray_from_object.pos.y)/(0 - ray_from_object.pos.x);
-direction_end = (-lens.radius - ray_from_object.pos.y)/(0 - ray_from_object.pos.x);
+screen = params.screen;
+render_area_right_border = params.render_area_right_border;
 
-for direction = linspace(direction_start, direction_end)
-params = fetch_variables();
-params.ray_from_object.direction = direction;
-result_params = lens_simulator(params);
+%% Draw the ray propagations
+for diffusing_ray = diffusing_rays
 
-lens = result_params.lens;
-screen = result_params.screen;
-ray_from_object = result_params.ray_from_object;
-ray_in_lens = result_params.ray_in_lens;
-ray_from_lens = result_params.ray_from_lens;
-projected_p = result_params.projected_p;
-p_at_right_border = result_params.p_at_right_border;
+    ray_entering_lens = diffusing_ray.ray_entering_lens;
+    ray_inside_lens = diffusing_ray.ray_inside_lens;
+    ray_leaving_lens = diffusing_ray.ray_leaving_lens;
+    
+    if isempty(ray_leaving_lens)
+        continue;
+    end
 
-%% plot the graph
-x = [];
-y = [];
+    %% plot the graph
+    x = [];
+    y = [];
 
-tmp_x = linspace(ray_from_object.pos.x, ray_in_lens.pos.x);
-tmp_y = ray_from_object.direction*(tmp_x - ray_from_object.pos.x) + ray_from_object.pos.y;
-x = [x tmp_x];
-y = [y tmp_y];
+    tmp_x = linspace(ray_entering_lens.pos.x, ray_inside_lens.pos.x);
+    tmp_y = solve_ray_for_y(ray_entering_lens, tmp_x);
+    x = [x tmp_x];
+    y = [y tmp_y];
 
-tmp_x = linspace(ray_in_lens.pos.x, ray_from_lens.pos.x);
-tmp_y = ray_in_lens.direction*(tmp_x - ray_in_lens.pos.x) + ray_in_lens.pos.y;
-x = [x tmp_x];
-y = [y tmp_y];
+    tmp_x = linspace(ray_inside_lens.pos.x, ray_leaving_lens.pos.x);
+    tmp_y = solve_ray_for_y(ray_inside_lens, tmp_x);
+    x = [x tmp_x];
+    y = [y tmp_y];
 
-tmp_x = linspace(ray_from_lens.pos.x, projected_p.pos.x);
-tmp_y = ray_from_lens.direction*(tmp_x - ray_from_lens.pos.x) + ray_from_lens.pos.y;
-x = [x tmp_x];
-y = [y tmp_y];
+    tmp_x = linspace(ray_leaving_lens.pos.x, screen.pos.x);
+    tmp_y = solve_ray_for_y(ray_leaving_lens, tmp_x);
+    x = [x tmp_x];
+    y = [y tmp_y];
 
-tmp_x = linspace(projected_p.pos.x, p_at_right_border.pos.x);
-tmp_y = ray_from_lens.direction*(tmp_x - projected_p.pos.x) + projected_p.pos.y;
-x = [x tmp_x];
-y = [y tmp_y];
+    tmp_x = linspace(screen.pos.x, render_area_right_border);
+    tmp_y = solve_ray_for_y(ray_leaving_lens, tmp_x);
+    x = [x tmp_x];
+    y = [y tmp_y];
 
-%plot(x, y);
-plot(x, y, 'Color', 'cyan');
-hold on
+    %plot(x, y);
+    plot(x, y, 'Color', 'cyan');
+    hold on
+
+end
 
 %% plot the lens
 r = lens.r1;
@@ -84,19 +87,27 @@ else
     y = new_y;
 end
 plot(x,y, 'Color', [0,0,0])
-
+ 
 %% plot object plane
- y = linspace(-lens.radius, lens.radius);
- x = y*0 + ray_from_object.pos.x;
- plot(x,y, 'Color', [0,0,0]);
+lim = axis;
+y = linspace(lim(3), lim(4));
+x = y*0 + ray_entering_lens.pos.x;
+plot(x,y, 'Color', [0,0,0]);
 
 %% plot screen plane
- y = linspace(-lens.radius, lens.radius);
- x = y*0 + screen.pos.x;
- plot(x,y, 'Color', [0,0,0]);
- axis equal
+y = linspace(lim(3), lim(4));
+x = y*0 + screen.pos.x;
+plot(x,y, 'Color', [0,0,0]);
+axis equal
 %% plot y axis
 % y = linspace(-lens.radius, lens.radius);
 % x = y*0;
 % plot(x,y, 'Color', [0,0,0]);
+
+function y = solve_ray_for_y(ray, x)
+    m = ray.direction;
+    x1 = ray.pos.x;
+    y1 = ray.pos.y;
+    [a, b, c] = pointslope_to_general(m, x1, y1);
+    y = solve_linear_for_y(a, b, c, x);
 end

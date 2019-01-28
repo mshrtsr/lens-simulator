@@ -24,7 +24,7 @@ lens.EFL = 0.217; % effective focal length [mm]
 
 lens.EFL = 1/((lens.IOR-1)*(1/lens.r1-1/lens.r2)+((lens.IOR-1)^2)*lens.thickness/(lens.IOR*lens.r1*lens.r2)); % Lensmaker's equation
 
-lens.m = 0.5;%1.0;
+lens.m = 1.0;
 lens.a = (lens.m+1)/lens.m*lens.EFL; % [mm];
 lens.b = (lens.m+1)*lens.EFL; % [mm]
 
@@ -45,6 +45,7 @@ params.air = air;
 params.lens = lens;
 params.screen = screen;
 params.render_area_right_border = render_area_right_border;
+
 store.ray_entering_lens = ray_entering_lens;
 
 end
