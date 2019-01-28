@@ -1,4 +1,4 @@
-function params =  fetch_variables()
+function [params, store] =  fetch_variables()
 %% Parameter of experiment import
 %fdir = '../dataset/your_dataset_dir/';
 
@@ -8,6 +8,9 @@ function params =  fetch_variables()
 % params.fdir = fdir;
 
 %% (Optional) Parameter of experiment
+% Air(Material out of lens) setting
+air.IOR = 1.0;
+
 % Lens setting
 lens.r1 = 0.1; % radius of curvature 1 [mm]
 lens.r2 = Inf;%Inf; % radius of curvature 2 [mm]
@@ -30,14 +33,15 @@ screen.pos.y = 0;
 render_area_right_border = screen.pos.x * 1.1;
 
 % Define the ray condition
-ray_from_object.pos.x = -lens.a;
-ray_from_object.pos.y = 0.1;
-ray_from_object.direction = ray_from_object.pos.y/ray_from_object.pos.x;
+ray_entering_lens.pos.x = -lens.a;
+ray_entering_lens.pos.y = 0.1;
+ray_entering_lens.direction = ray_entering_lens.pos.y/ray_entering_lens.pos.x;
 
 % Copy all paramaters to struct params
+params.air = air;
 params.lens = lens;
 params.screen = screen;
 params.render_area_right_border = render_area_right_border;
-params.ray_from_object = ray_from_object;
+store.ray_entering_lens = ray_entering_lens;
 
 end
