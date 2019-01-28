@@ -21,12 +21,12 @@ lens.thickness = 0.05; % thickness [mm]
 lens.radius = 0.05; % Radius of lens [mm]
 lens.IOR = 1.43; % refractive index (index of refractive)
 lens.EFL = 0.217; % effective focal length [mm]
+lens.EFL = calc_EFL(lens); % effective focal length [mm]
 
-lens.EFL = 1/((lens.IOR-1)*(1/lens.r1-1/lens.r2)+((lens.IOR-1)^2)*lens.thickness/(lens.IOR*lens.r1*lens.r2)); % Lensmaker's equation
-
-lens.m = 1.0;
-lens.a = (lens.m+1)/lens.m*lens.EFL; % [mm];
-lens.b = (lens.m+1)*lens.EFL; % [mm]
+% Lens magnitude setting
+lens.m = 1.0; % lens magnitude
+lens.a = (lens.m+1)/lens.m*lens.EFL; % Distance from object to lens [mm];
+lens.b = (lens.m+1)*lens.EFL; % Distance from screen to lens [mm];
 
 % Screen setting
 screen.pos.x = lens.b;
@@ -40,7 +40,7 @@ ray_entering_lens.pos.x = -lens.a;
 ray_entering_lens.pos.y = 0.1;
 ray_entering_lens.direction = ray_entering_lens.pos.y/ray_entering_lens.pos.x;
 
-% Copy all paramaters to struct params
+%% Copy all paramaters to struct params
 params.air = air;
 params.lens = lens;
 params.screen = screen;
