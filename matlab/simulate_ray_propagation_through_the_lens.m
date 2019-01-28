@@ -38,11 +38,10 @@ end
 %% Calculate refracted ray condition
 function refracted_ray = calc_refraction_ray(incident_ray, lens, air, surface_side)
 
-    % y - y_1 = m(x - x_1) => -m*x + y + m*x_1 - y_1 == 0
-    % ax + by + c == 0
-    a = -incident_ray.direction;
-    b = 1;
-    c = -a*incident_ray.pos.x - incident_ray.pos.y;
+    m = incident_ray.direction;
+    x1 = incident_ray.pos.x;
+    y1 = incident_ray.pos.y;
+    [a, b, c] = pointslope_to_general(m, x1, y1);
 
     % position = (x_p, y_p) and radius of curvature = r
     if strcmp(surface_side,'front')
